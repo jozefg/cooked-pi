@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 module LambdaPi.HOAS where
 import           Control.Applicative
 import           Control.Monad.Gen
@@ -52,14 +53,35 @@ data Env = Env { localVars :: M.Map Int NF
                , constants :: M.Map String NF }
 type TyM = GenT Int (ReaderT Env Maybe)
 
-nferType :: Expr -> TyM NF
-nferType = undefined
+inferType :: Expr -> TyM NF
+inferType (IGen i) = asks (M.lookup i . localVars) >>= maybe mzero return
+inferType (C s) = asks (M.lookup s . constants) >>= maybe mzero return
+inferType ETrue = return Bool
+inferType EFalse = return Bool
+inferType Bool = return Star
+inferType Star = return Star
+inferType (Pi t f) = do
+  checkType t Star
+  let t' = nf t
+  i <- gen
+  local (\e -> e{localVars = M.insert i t' $ localVars e}) $
+    Star <$ checkType (f $ IGen i) Star
+inferType (Lam _) = mzero
+inferType (Annot l r) = do
+  checkType r Star
+  let r' = nf r
+  r' <$ checkType l r'
+inferType (App l r) = do
+  inferType l >>= \case
+    Pi t f -> do
+      f (nf r) <$ checkType r t
+    _ -> mzero
 
 checkType :: Expr ->NF -> TyM ()
 checkType (Lam f) (Pi t g) = do
   i <- gen
   let t' = nf t
       rTy = nf (g $ IGen i)
-  local (\e -> e{localVars = M.insert i t $ localVars e}) $
+  local (\e -> e{localVars = M.insert i t' $ localVars e}) $
     checkType (f $ IGen i) rTy
-checkType e t = nferType e >>= guard . eqType t
+checkType e t = inferType e >>= guard . eqType t
