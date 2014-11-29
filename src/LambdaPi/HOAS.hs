@@ -35,11 +35,6 @@ cnf :: CExpr -> NFC
 cnf (CI e) = CI (inf e)
 cnf (Lam f) = Lam (cnf . f)
 
--- *Whistle and fidget with hands*
-instance Enum IExpr where
-  toEnum = IGen
-  fromEnum _ = error "You're a bad person."
-
 ceqTerm :: NFC -> NFC -> Gen NFI Bool
 ceqTerm (Lam f) (Lam g) = gen >>= \v -> ceqTerm (f $ CI v) (g $ CI v)
 ceqTerm (CI l) (CI r) = ieqTerm l r
@@ -56,3 +51,8 @@ ieqTerm (Pi t f) (Pi t' g) =
   (&&) <$> ceqTerm t t' <*> (gen >>= \v -> ceqTerm (f $ CI v) (g $ CI v))
 ieqTerm (IGen i) (IGen j) = return (i == j)
 ieqTerm _ _ = return False
+
+eqType :: NFC -> NFC -> Bool
+eqType l r = runGenWith (successor s) (IGen 0) $ ceqTerm l r
+  where s (IGen i) = IGen (i + 1)
+        s _ = error "Impossible!"
