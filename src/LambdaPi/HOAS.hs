@@ -26,8 +26,9 @@ nf Bool = Bool
 nf Star = Star
 nf (C s) = C s
 nf (IGen i) = IGen i
-nf (Annot l r) = nf l
+nf (Annot l _) = nf l
 nf (Pi t f) = Pi (nf t) (nf . f)
+nf (Lam f) = Lam (nf . f)
 nf (App l r) = case nf l of
   Lam f -> nf . f $ l
   l' -> App l' (nf r)
