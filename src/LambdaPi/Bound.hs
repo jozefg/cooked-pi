@@ -43,7 +43,7 @@ type Val = Expr -- Represents normalized expressions
 
 nf :: Expr a -> Val a
 nf = \case
-  (Annot e t) -> Annot (nf e) (nf t)
+  (Annot e t) -> nf e
   (Lam e) -> Lam (toScope . nf . fromScope $ e)
   (Pi l r) -> Pi (nf l) (toScope . nf . fromScope $ r)
   (App l r) ->
