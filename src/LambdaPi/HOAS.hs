@@ -18,6 +18,13 @@ data CExpr = Lam (CExpr -> CExpr)
 type NFI = IExpr
 type NFC = CExpr
 
+inf :: IExpr -> NFI
+inf = undefined
+
+cnf :: CExpr -> NFC
+cnf (CI e) = CI (inf e)
+cnf (Lam f) = Lam (cnf . f)
+
 -- *Whistle and fidget with hands*
 instance Enum IExpr where
   toEnum = IGen
