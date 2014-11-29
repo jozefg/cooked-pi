@@ -16,7 +16,6 @@ data Expr = App Expr Expr
           | C String
           | IGen Int
 
-
 type NF = Expr
 
 nf :: Expr -> NF
@@ -33,7 +32,7 @@ nf (App l r) = case nf l of
   Lam f -> nf . f $ l
   l' -> App l' (nf r)
 
-eqTerm ::NF ->NF -> Gen Expr Bool
+eqTerm :: NF -> NF -> Gen Expr Bool
 eqTerm Star Star = return True
 eqTerm Bool Bool = return True
 eqTerm ETrue ETrue = return True
@@ -45,7 +44,7 @@ eqTerm (Pi t f) (Pi t' g) =
 eqTerm (IGen i) (IGen j) = return (i == j)
 eqTerm _ _ = return False
 
-eqType ::NF ->NF -> Bool
+eqType :: NF -> NF -> Bool
 eqType l r = runGenWith (successor s) (IGen 0) $ eqTerm l r
   where s (IGen i) = IGen (i + 1)
         s _ = error "Impossible!"
@@ -78,7 +77,7 @@ inferType (App l r) = do
       f (nf r) <$ checkType r t
     _ -> mzero
 
-checkType :: Expr ->NF -> TyM ()
+checkType :: Expr -> NF -> TyM ()
 checkType (Lam f) (Pi t g) = do
   i <- gen
   let t' = nf t
