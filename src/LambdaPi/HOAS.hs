@@ -2,8 +2,7 @@ module LambdaPi.HOAS where
 import Control.Applicative
 import Control.Monad.Gen
 
-data IExpr = Var Int
-           | App IExpr CExpr
+data IExpr = App IExpr CExpr
            | Annot CExpr CExpr
            | ETrue
            | EFalse
