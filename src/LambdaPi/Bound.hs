@@ -18,6 +18,7 @@ data Expr a = Var a
             | Star
             | Pi (Expr a) (Scope () Expr a)
             | Lam (Scope () Expr a)
+            | C String
             deriving(Functor, Eq)
 
 instance Eq1 Expr where (==#) = (==)
@@ -32,9 +33,11 @@ instance Monad Expr where
   EFalse >>= _ = EFalse
   Bool >>= _ = Bool
   Star >>= _ = Star
+  C s >>= _ = C s
   Annot l r >>= f = Annot (l >>= f) (r >>= f)
   Pi l s >>= f = Pi (l >>= f) (s >>>= f)
   Lam e >>= f = Lam (e >>>= f)
+
 
 type Val = Expr -- Represents normalized expressions
 
@@ -49,7 +52,8 @@ nf = \case
      l' -> App l' (nf r)
   e -> e
 
-type Env = M.Map Int (Val Int)
+data Env = Env { localVars :: M.Map Int (Val Int)
+               , constants  :: M.Map String (Val Int) }
 type TyM = ReaderT Env (GenT Int Maybe)
 
 unbind :: (MonadGen a m, Functor m, Monad f) => Scope () f a -> m (a, f a)
@@ -59,7 +63,8 @@ unbindWith :: Monad f => a -> Scope () f a -> f a
 unbindWith = instantiate1 . return
 
 inferType :: Expr Int -> TyM (Val Int)
-inferType (Var i) = asks (M.lookup i) >>= maybe mzero return
+inferType (Var i) = asks (M.lookup i . localVars) >>= maybe mzero return
+inferType (C s) = asks (M.lookup s . constants) >>= maybe mzero return
 inferType ETrue = return Bool
 inferType EFalse = return Bool
 inferType Bool = return Star
@@ -77,13 +82,13 @@ inferType (App f a) = do
 inferType (Pi t s) = do
   checkType t Star
   (newVar, s') <- unbind s
-  local (M.insert newVar $ nf t) $
+  local (\e -> e{localVars = M.insert newVar (nf t) $ localVars e}) $
     Star <$ checkType s' Star
 
 checkType :: Expr Int -> Val Int -> TyM ()
 checkType (Lam s) (Pi t ts) = do
   (newVar, s') <- unbind s
-  local (M.insert newVar (nf t)) $
+  local (\e -> e{localVars = M.insert newVar (nf t) $ localVars e}) $
     checkType s' (nf $ unbindWith newVar ts)
 checkType e t = inferType e >>= guard . (== t)
 
@@ -96,5 +101,5 @@ pit v t = Pi t . abstract1 v
 typecheck :: Expr Int -> Expr Int -> Bool
 typecheck e = isJust
               . runGenT
-              . flip runReaderT M.empty
+              . flip runReaderT (Env M.empty M.empty)
               . checkType e
