@@ -1,6 +1,6 @@
 ## cooked-pi
 
-![build status][build]
+[![build status][build]][travis]
 
 In the spirit of turkey day I baked a type checker for λΠ in several
 different styles.
@@ -21,3 +21,4 @@ Enjoy!
 [blog1]: http://jozefg.bitbucket.org/posts/2014-11-22-bidir.html
 [draft]: https://github.com/jozefg/drafts/blob/master/variables-are-hard.md
 [build]: https://travis-ci.org/jozefg/cooked-pi.svg?branch=master
+[travis]: https://travis-ci.org/jozefg/cooked-pi
