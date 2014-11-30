@@ -32,22 +32,20 @@ nf (App l r) = case nf l of
   Lam f -> nf . f $ l
   l' -> App l' (nf r)
 
-eqTerm :: NF -> NF -> Gen Expr Bool
-eqTerm Star Star = return True
-eqTerm Bool Bool = return True
-eqTerm ETrue ETrue = return True
-eqTerm EFalse EFalse = return True
-eqTerm (Annot l r) (Annot l' r') = (&&) <$> eqTerm l l' <*> eqTerm r r'
-eqTerm (App l r) (App l' r') = (&&) <$> eqTerm l l' <*> eqTerm r r'
-eqTerm (Pi t f) (Pi t' g) =
-  (&&) <$> eqTerm t t' <*> (gen >>= \v -> eqTerm (f v) (g v))
-eqTerm (IGen i) (IGen j) = return (i == j)
-eqTerm _ _ = return False
-
-eqType :: NF -> NF -> Bool
-eqType l r = runGenWith (successor s) (IGen 0) $ eqTerm l r
+eqTerm :: NF -> NF -> Bool
+eqTerm l r = runGenWith (successor s) (IGen 0) $ go l r
   where s (IGen i) = IGen (i + 1)
         s _ = error "Impossible!"
+        go Star Star = return True
+        go Bool Bool = return True
+        go ETrue ETrue = return True
+        go EFalse EFalse = return True
+        go (Annot l r) (Annot l' r') = (&&) <$> go l l' <*> go r r'
+        go (App l r) (App l' r') = (&&) <$> go l l' <*> go r r'
+        go (Pi t f) (Pi t' g) =
+          (&&) <$> go t t' <*> (gen >>= \v -> go (f v) (g v))
+        go (IGen i) (IGen j) = return (i == j)
+        go _ _ = return False
 
 data Env = Env { localVars :: M.Map Int NF
                , constants :: M.Map String NF }
@@ -84,4 +82,4 @@ checkType (Lam f) (Pi t g) = do
       rTy = nf (g $ IGen i)
   local (\e -> e{localVars = M.insert i t' $ localVars e}) $
     checkType (f $ IGen i) rTy
-checkType e t = inferType e >>= guard . eqType t
+checkType e t = inferType e >>= guard . eqTerm t
