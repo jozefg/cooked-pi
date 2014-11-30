@@ -4,6 +4,7 @@ import           Control.Applicative
 import           Control.Monad.Gen
 import           Control.Monad.Reader
 import qualified Data.Map             as M
+import           Data.Maybe
 
 data Expr = App Expr Expr
           | Annot Expr Expr
@@ -49,7 +50,7 @@ eqTerm l r = runGenWith (successor s) (IGen 0) $ go l r
 
 data Env = Env { localVars :: M.Map Int NF
                , constants :: M.Map String NF }
-type TyM = GenT Int (ReaderT Env Maybe)
+type TyM = ReaderT Env (GenT Int Maybe)
 
 inferType :: Expr -> TyM NF
 inferType (IGen i) = asks (M.lookup i . localVars) >>= maybe mzero return
@@ -83,3 +84,10 @@ checkType (Lam f) (Pi t g) = do
   local (\e -> e{localVars = M.insert i t' $ localVars e}) $
     checkType (f $ IGen i) rTy
 checkType e t = inferType e >>= guard . eqTerm t
+
+hasType :: Expr -> Expr -> Bool
+hasType e = isJust
+            . runGenT
+            . flip runReaderT (Env M.empty M.empty)
+            . checkType e
+            . nf
