@@ -23,3 +23,31 @@ library
                      , prelude-extras
   hs-source-dirs:      src
   default-language:    Haskell2010
+
+Test-Suite simple-easy
+  hs-source-dirs: test
+  type:               exitcode-stdio-1.0
+  main-is:            Easy.hs
+  hs-source-dirs:     test
+  build-depends:      cooked-pi
+                    , tasty
+                    , base > 4.0 && < 5
+  default-language:    Haskell2010
+Test-Suite bound
+  hs-source-dirs: test
+  type:               exitcode-stdio-1.0
+  main-is:            Bound.hs
+  hs-source-dirs:     test
+  build-depends:      cooked-pi
+                    , tasty
+                    , base > 4.0 && < 5
+  default-language:    Haskell2010
+Test-Suite hoas
+  hs-source-dirs: test
+  type:               exitcode-stdio-1.0
+  main-is:            HOAS.hs
+  hs-source-dirs:     test
+  build-depends:      cooked-pi
+                    , tasty
+                    , base > 4.0 && < 5
+  default-language:    Haskell2010
