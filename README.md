@@ -1,5 +1,7 @@
 ## cooked-pi
 
+![build status][build]
+
 In the spirit of turkey day I baked a type checker for λΠ in several
 different styles.
 
@@ -18,3 +20,4 @@ Enjoy!
 [unbound]: http://hackage.haskell.org/package/unbound
 [blog1]: http://jozefg.bitbucket.org/posts/2014-11-22-bidir.html
 [draft]: https://github.com/jozefg/drafts/blob/master/variables-are-hard.md
+[build]: https://travis-ci.org/jozefg/cooked-pi.svg?branch=master
