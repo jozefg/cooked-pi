@@ -98,8 +98,8 @@ lam a = Lam . abstract1 a
 pit :: Eq a => a -> Expr a -> Expr a -> Expr a
 pit v t = Pi t . abstract1 v
 
-typecheck :: Expr Int -> Expr Int -> Bool
-typecheck e = isJust
-              . runGenT
-              . flip runReaderT (Env M.empty M.empty)
-              . checkType e
+hasType :: Expr Int -> Expr Int -> Bool
+hasType e = isJust
+            . runGenT
+            . flip runReaderT (Env M.empty M.empty)
+            . checkType e
