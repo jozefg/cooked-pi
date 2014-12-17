@@ -12,11 +12,9 @@ cabal-version:       >=1.10
 library
   exposed-modules:     LambdaPi.HOAS
                      , LambdaPi.Bound
-                     , LambdaPi.Unbound
                      , LambdaPi.Easy
   build-depends:       base >=4 && <5
                      , bound
-                     , unbound
                      , monad-gen
                      , containers
                      , mtl
