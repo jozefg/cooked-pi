@@ -2,7 +2,7 @@
 
 [![build status][build]][travis]
 
-In the spirit of turkey day I baked a type checker for λΠ in several
+In the spirit of the holidays I baked a type checker for λΠ in several
 different styles.
 
  - As presented in Simple Easy!
